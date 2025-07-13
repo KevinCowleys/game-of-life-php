@@ -13,16 +13,28 @@ class ConsoleRenderer implements RendererInterface
 
     public function render(Grid $grid, int $generation): void
     {
-        foreach ($grid->toArray() as $row) {
-            $print_row = '';
+        $gridData = $grid->toArray();
+        $rowCount = count($gridData);
+        $colCount = count($gridData[0] ?? []);
 
-            foreach ($row as $cell) {
-                $print_row .= ($cell ? $this->symbolAlive : $this->symbolDead);
+        $toPrint = '';
+
+        // go through all the first cols
+        for ($col = 0; $col < $colCount; $col++) {
+            // loop through the rows
+            for ($row = 0; $row < $rowCount; $row++) {
+                if (!isset($gridData[$row][$col])) continue;
+
+                $toPrint .= ($gridData[$row][$col] ? $this->symbolAlive : $this->symbolDead);
             }
 
-            if ($print_row === '') continue;
-            print $print_row . "\n";
+            // Skip if it's empty
+            if ($toPrint === '') continue;
+
+            $toPrint .= "\n";
         }
+
+        echo $toPrint;
     }
 
     public function clear(): void
@@ -37,7 +49,7 @@ class ConsoleRenderer implements RendererInterface
 
     public function setDeadSymbol(string $symbol): void
     {
-        $this->symbolDead = $symbol;   
+        $this->symbolDead = $symbol;
     }
 
     public function finish(int $generation): void

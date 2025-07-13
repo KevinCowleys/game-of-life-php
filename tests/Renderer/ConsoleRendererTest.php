@@ -7,10 +7,15 @@ use GameOfLife\Renderer\ConsoleRenderer;
 
 class ConsoleRendererTest
 {
-    private $testPattern = [[0,1], [1,0]];
+    private $testPattern = [[0, 1], [1, 0]];
     private $expectedOutput = <<<'EOD'
     ⬛️🟩
     🟩⬛️
+
+    EOD;
+    private $expectedOutputFxT = <<<'EOD'
+    ⬛️🟩⬛️⬛️
+    🟩⬛️⬛️⬛️
 
     EOD;
     private $expectedOutputEmpty = "";
@@ -39,5 +44,19 @@ class ConsoleRendererTest
         $output = ob_get_clean();
 
         assert($output === $this->expectedOutput, 'Expect the rendered output to be filled when symbols are given');
+    }
+
+    public function testConsoleRenderUsesCorrectWidth()
+    {
+        $renderer = new ConsoleRenderer();
+        $renderer->setAliveSymbol('🟩');
+        $renderer->setDeadSymbol('⬛️');
+        $grid = Grid::create(4, 2, $this->testPattern);
+
+        ob_start();
+        $renderer->render($grid, 0);
+        $output = ob_get_clean();
+
+        assert($output === $this->expectedOutputFxT, 'Expect the rendered output to have a longer width');
     }
 }
