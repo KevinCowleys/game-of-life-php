@@ -4,11 +4,22 @@ declare(strict_types=1);
 
 namespace GameOfLife;
 
+enum CellState: int
+{
+    case DEAD = 0;
+    case ALIVE = 1;
+}
+
 class Grid
 {
+    /** @var array<array<int>> */
     private array $rows;
     private int $numRows;
     private int $numCols;
+
+    private const NEIGHBOUR_MIN = 2;
+    private const REVIVE_COUNT = 3;
+    private const SURVIVE_COUNT = 3;
 
     /**
      * @param array<array<int>> $rows
@@ -23,71 +34,114 @@ class Grid
     }
 
     /**
-     * Creates an empty grid.
+     * Creates a new grid
      *
-     * It creates an empty grid with all the cells starting out as dead.
+     * It creates an empty grid with all the cells starting out as dead if a
+     * pattern isn't given.
+     *
+     * Patterns will always start from the top left.
+     * Additionally, we will only create a grid the size of $numRows and $numCols.
+     * Anything outside of that will be ignored in the pattern.
      *
      * @param int $numRows
      * @param int $numCols
+     * @param array<array<int>> $pattern
      *
      * @return self
      */
-    public static function createEmptyGrid(int $numRows, int $numCols): self
+    public static function create(int $numRows, int $numCols, array $pattern = []): self
     {
-        $rows = [];
+        $rows = array_fill(0, $numRows, array_fill(0, $numCols, CellState::DEAD->value));
 
-        for ($i = 0; $i < $numRows; $i++) {
-            $rows[$i] = array_fill(0, $numCols, 0);
+        foreach ($pattern as $rowIndex => $row) {
+            if (!is_array($row) || $rowIndex >= $numRows) continue;
+
+            foreach ($row as $colIndex => $value) {
+                if ($colIndex < $numCols) {
+                    $rows[$rowIndex][$colIndex] = (int)$value;
+                }
+            }
         }
 
         return new self($rows, $numRows, $numCols);
     }
 
     /**
-     * Creates a grid from a pattern.
+     * Generates the next generation
      *
-     * It creates a grid from a pattern. Patterns will always start from the top left.
-     * Additionally, we will only create a grid the size of $numRows and $numCols.
-     * Anything outside of that will be ignored in the pattern.
-     *
-     * @param array<array<int>> $pattern
-     * @param int $numRows
-     * @param int $numCols
-     *
-     * @return self
+     * @return void
      */
-    public static function createFromPattern(array $pattern, int $numRows, int $numCols): self
+    public function nextGeneration(): void
     {
-        $rows = [];
+        $cellsToRemove = [];
+        $cellsToCreate = [];
 
-        for ($i = 0; $i < $numRows; $i++) {
-            $rows[$i] = array_fill(0, $numCols, 0);
+        foreach ($this->rows as $rowIndex => $row) {
+            foreach ($row as $colIndex => $cellAlive) {
+                $alive = $this->countAliveNeighbours($rowIndex, $colIndex);
 
-            if (!isset($pattern[$i]) || !is_array($pattern[$i])) {
-                continue;
-            }
-
-            foreach ($pattern[$i] as $col => $val) {
-                // Avoid making grid bigger than what was asked for in $numCols
-                if ($col > $numCols - 1) {
+                // Cell is not alive, check if we should revive
+                if ($cellAlive === CellState::DEAD->value && $alive === self::REVIVE_COUNT) {
+                    $cellsToCreate[] = [$rowIndex, $colIndex];
                     continue;
                 }
 
-                $rows[$i][$col] = (int)$val;
+                // Cell is alive, check if we should remove it
+                if (
+                    $cellAlive === CellState::ALIVE->value
+                    && ($alive < self::NEIGHBOUR_MIN || $alive > self::SURVIVE_COUNT)
+                ) {
+                    $cellsToRemove[] = [$rowIndex, $colIndex];
+                    continue;
+                }
             }
         }
 
-        return new self($rows, $numRows, $numCols);
+        // Remove dead cells
+        foreach ($cellsToRemove as $deadCell) {
+            $this->rows[$deadCell[0]][$deadCell[1]] = CellState::DEAD->value;
+        }
+
+        // Add new cells
+        foreach ($cellsToCreate as $reviveCell) {
+            $this->rows[$reviveCell[0]][$reviveCell[1]] = CellState::ALIVE->value;
+        }
     }
 
-    public function nextGeneration()
+    /**
+     * Counts alive neighbours
+     *
+     * @param int $row
+     * @param int $col
+     *
+     * @return int
+     */
+    private function countAliveNeighbours(int $row, int $col): int
     {
+        $alive = 0;
 
-    }
+        for ($offsetRow = -1; $offsetRow <= 1; $offsetRow++) {
+            $rowIndex = $row - $offsetRow;
+            // We should skip this, we don't support infinite world yet
+            if ($rowIndex < 0) continue;
 
-    private function countAliveNeighbours()
-    {
-        
+            for ($offsetCol = -1; $offsetCol <= 1; $offsetCol++) {
+                // Skip, we're at the cell we're checking for
+                if ($offsetRow === 0 && $offsetCol === 0) continue;
+
+                $colIndex = $col - $offsetCol;
+
+                // We should skip these, we don't support infinite worlds
+                // TODO consider supporting it via option
+                if ($colIndex < 0) continue;
+
+                if ($this->isAlive($rowIndex, $colIndex)) {
+                    $alive++;
+                }
+            }
+        }
+
+        return $alive;
     }
 
     /**
@@ -130,7 +184,7 @@ class Grid
     /**
      * Returns the number of columns
      *
-     * @param int
+     * @return int
      */
     public function getColumnCount(): int
     {

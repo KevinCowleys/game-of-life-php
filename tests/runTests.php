@@ -30,7 +30,7 @@ foreach ($classes as $className) {
         try {
             $method->invoke($instance);
             echo "✅ Passed\n";
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             echo "❌ Failed - " . $e->getMessage() . "\n";
         }
     }

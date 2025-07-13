@@ -13,8 +13,8 @@ The basic rules to the Game of Life are the following:
 
 Or to simplify in coding terms:
 
-* Your alive cell dies if it has <> 3 neighbours;
-* Your dead cell has = 3 it can then revive;
+* Your alive cell dies if it has ($cell < 2 || $cell > 3) neighbours;
+* If your dead cell has = 3 alive neighbours it can then revive;
 
 ### What are your neighbours?
 

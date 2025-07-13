@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use GameOfLife\CellState;
 use GameOfLife\Grid;
 
 /**
@@ -27,7 +28,7 @@ class GridTest
         $rows = 0;
         $cols = 0;
         $grid = new Grid([], $rows, $cols);
-        
+
         assert($grid->getColumnCount() === 0, 'Expect grid column count to be 0');
         assert($grid->getRowCount() === 0, 'Expect grid row count to be 0');
         assert($grid->toArray() === [], 'Expect grid to return an empty array');
@@ -35,7 +36,7 @@ class GridTest
 
     public function testCreateEmptyGridWithoutValues(): void
     {
-        $grid = Grid::createEmptyGrid(0, 0);
+        $grid = Grid::create(0, 0);
 
         assert($grid->getColumnCount() === 0, 'Expect grid column count to be 2');
         assert($grid->getRowCount() === 0, 'Expect grid row count to be 2');
@@ -44,24 +45,11 @@ class GridTest
 
     public function testCreateEmptyGridWithValues(): void
     {
-        $grid = Grid::createEmptyGrid(2, 2);
+        $grid = Grid::create(2, 2);
 
         assert($grid->getColumnCount() === 2, 'Expect grid column count to be 2');
         assert($grid->getRowCount() === 2, 'Expect grid row count to be 2');
         assert($grid->toArray() === [[0, 0], [0, 0]], 'Expect grid to return an empty array');
-    }
-
-    public function testCreatingGridFromEmptyPattern(): void
-    {
-        $numRows = 2;
-        $numCols = 2;
-        $pattern = [];
-
-        $grid = Grid::createFromPattern($pattern, $numRows, $numCols);
-
-        assert($grid->getColumnCount() === 2, 'Expect grid column count to be 2');
-        assert($grid->getRowCount() === 2, 'Expect grid row count to be 2');
-        assert($grid->toArray() === [[0, 0], [0, 0]], 'Expect grid to be generated without pattern');
     }
 
     public function testPatternFillsBiggerGrid(): void
@@ -69,15 +57,12 @@ class GridTest
         $numRows = 5;
         $numCols = 5;
 
-        $grid = Grid::createFromPattern($this->twoByTwoPattern, $numRows, $numCols);
+        $grid = Grid::create($numRows, $numCols, $this->twoByTwoPattern);
 
         // Manually create our expected outcome
-        $rows = [];
-        for ($i = 0; $i < $numRows; $i++) {
-            $rows[$i] = array_fill(0, $numCols, 0);
-        }
-        $rows[0][1] = 1;
-        $rows[1][1] = 1;
+        $rows = array_fill(0, $numRows, array_fill(0, $numCols, CellState::DEAD->value));
+        $rows[0][1] = CellState::ALIVE->value;
+        $rows[1][1] = CellState::ALIVE->value;
 
         assert($grid->getColumnCount() === 5, 'Expect grid column count to be 5');
         assert($grid->getRowCount() === 5, 'Expect grid row count to be 5');
@@ -88,13 +73,45 @@ class GridTest
     {
         $numRows = 2;
         $numCols = 2;
-        $pattern = [[0, 1, 1, 0, 1], [0, 1, 1, 0, 1], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 0, 0, 0, 1]];
+        $pattern = [
+            [0, 1, 1, 0, 1],
+            [0, 1, 1, 0, 1],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1],
+        ];
 
-        $grid = Grid::createFromPattern($pattern, $numRows, $numCols);
+        $grid = Grid::create($numRows, $numCols, $pattern);
 
         assert($grid->getColumnCount() === 2, 'Expect grid column count to be 2');
         assert($grid->getRowCount() === 2, 'Expect grid row count to be 2');
         assert($grid->toArray() === $this->twoByTwoPattern, 'Expect grid to equal our expected outcome of using the param sizes');
+    }
+
+    public function testNextGeneration(): void
+    {
+        $numRows = 5;
+        $numCols = 5;
+        $pattern = [
+            [0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0],
+            [0, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+        ];
+        $expectedPattern = [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 1, 0],
+            [0, 0, 1, 0, 0],
+        ];
+
+        $grid = Grid::create($numRows, $numCols, $pattern);
+
+        $grid->nextGeneration();
+
+        assert($grid->toArray() === $expectedPattern, 'Expect grid to be the same as the expected next generation');
     }
 
     public function testIsAliveReturnsTrue(): void
