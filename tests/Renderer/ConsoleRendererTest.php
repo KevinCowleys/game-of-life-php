@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Renderer;
 
 use GameOfLife\Grid;
@@ -7,18 +9,18 @@ use GameOfLife\Renderer\ConsoleRenderer;
 
 class ConsoleRendererTest
 {
-    private $testPattern = [[0, 1], [1, 0]];
-    private $expectedOutput = <<<'EOD'
+    private array $testPattern = [[0, 1], [1, 0]];
+    private string $expectedOutput = <<<'EOD'
     ⬛️🟩
     🟩⬛️
 
     EOD;
-    private $expectedOutputFxT = <<<'EOD'
+    private String $expectedOutputFxT = <<<'EOD'
     ⬛️🟩⬛️⬛️
     🟩⬛️⬛️⬛️
 
     EOD;
-    private $expectedOutputEmpty = "";
+    private string $expectedOutputEmpty = "";
 
     public function testConsoleRenderingEmpty()
     {
