@@ -52,4 +52,11 @@ interface RendererInterface
      * @return $symbol
      */
     public function setDeadSymbol(string $symbol): void;
+
+    /**
+     * Called when the game has ended.
+     *
+     * @return void
+     */
+    public function finish(int $generation): void;
 }

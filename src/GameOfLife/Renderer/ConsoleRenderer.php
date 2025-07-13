@@ -39,4 +39,9 @@ class ConsoleRenderer implements RendererInterface
     {
         $this->symbolDead = $symbol;   
     }
+
+    public function finish(int $generation): void
+    {
+        echo "The game has ended after $generation generations!";
+    }
 }

@@ -16,6 +16,7 @@ class Grid
     private array $rows;
     private int $numRows;
     private int $numCols;
+    private bool $hasGameEnded = false;
 
     private const NEIGHBOUR_MIN = 2;
     private const REVIVE_COUNT = 3;
@@ -95,6 +96,11 @@ class Grid
                     continue;
                 }
             }
+        }
+
+        // The game has ended
+        if (empty($cellsToRemove) && empty($cellsToCreate)) {
+            $this->hasGameEnded = true;
         }
 
         // Remove dead cells
@@ -189,5 +195,10 @@ class Grid
     public function getColumnCount(): int
     {
         return $this->numCols;
+    }
+
+    public function hasGameEnded(): bool
+    {
+        return $this->hasGameEnded;
     }
 }
