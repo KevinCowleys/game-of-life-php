@@ -39,14 +39,14 @@ class ConsoleRenderer implements RendererInterface
 
     public function clear(): void
     {
-        // This doesn't always work
-        echo "\033[2J\033[H";
-
         if (strncasecmp(PHP_OS, 'WIN', 3) === 0) {
             system('cls');
         } else {
             system('clear');
         }
+
+        // This doesn't always work
+        echo "\033[2J\033[H";
     }
 
     public function setAliveSymbol(string $symbol): void
