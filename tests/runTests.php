@@ -3,7 +3,7 @@
 require __DIR__ . '/../autoload.php';
 
 // Include all PHP files from the 'tests' directory
-foreach (glob(__DIR__ . '/*Test.php') as $file) {
+foreach (glob(__DIR__ . '{/*Test.php,/*/*Test.php}', GLOB_BRACE) as $file) {
     require_once $file;
 }
 
