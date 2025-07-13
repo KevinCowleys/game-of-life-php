@@ -17,6 +17,7 @@ class Grid
     private int $numRows;
     private int $numCols;
     private bool $hasGameEnded = false;
+    private bool $isInfinite = false;
 
     private const NEIGHBOUR_MIN = 2;
     private const REVIVE_COUNT = 3;
@@ -127,19 +128,28 @@ class Grid
         $alive = 0;
 
         for ($offsetRow = -1; $offsetRow <= 1; $offsetRow++) {
-            $rowIndex = $row - $offsetRow;
-            // We should skip this, we don't support infinite world yet
-            if ($rowIndex < 0) continue;
-
             for ($offsetCol = -1; $offsetCol <= 1; $offsetCol++) {
                 // Skip, we're at the cell we're checking for
                 if ($offsetRow === 0 && $offsetCol === 0) continue;
 
-                $colIndex = $col - $offsetCol;
+                $rowIndex = $row + $offsetRow;
+                $colIndex = $col + $offsetCol;
 
-                // We should skip these, we don't support infinite worlds
-                // TODO consider supporting it via option
-                if ($colIndex < 0) continue;
+                if ($this->isInfinite) {
+                    // Wrap around with modulo for toroidal behavior
+                    $rowIndex = ($rowIndex + $this->numRows) % $this->numRows;
+                    $colIndex = ($colIndex + $this->numCols) % $this->numCols;
+                } else {
+                    // Skip out-of-bounds
+                    if (
+                        $rowIndex < 0
+                        || $rowIndex >= $this->numRows
+                        || $colIndex < 0
+                        || $colIndex >= $this->numCols
+                    ) {
+                        continue;
+                    }
+                }
 
                 if ($this->isAlive($rowIndex, $colIndex)) {
                     $alive++;
@@ -197,8 +207,25 @@ class Grid
         return $this->numCols;
     }
 
+    /**
+     * Returns the active status
+     *
+     * @return bool
+     */
     public function hasGameEnded(): bool
     {
         return $this->hasGameEnded;
+    }
+
+    /**
+     * Sets it to toroidal / infinite.
+     *
+     * @param bool $setValue
+     *
+     * @return void
+     */
+    public function setInfinite(bool $setValue): void
+    {
+        $this->isInfinite = $setValue;
     }
 }

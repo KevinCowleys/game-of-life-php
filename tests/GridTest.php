@@ -14,6 +14,13 @@ use GameOfLife\Grid;
 class GridTest
 {
     private array $twoByTwoPattern = [[0, 1], [0, 1]];
+    private array $infinitePattern = [
+        [0, 0, 0, 1, 1],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1],
+    ];
 
     private function makeTwoByTwoGrid(): Grid
     {
@@ -108,10 +115,51 @@ class GridTest
         ];
 
         $grid = Grid::create($numRows, $numCols, $pattern);
+        $grid->setInfinite(false);
 
         $grid->nextGeneration();
 
         assert($grid->toArray() === $expectedPattern, 'Expect grid to be the same as the expected next generation');
+    }
+
+    public function testNextGenerationWithoutInfinite(): void
+    {
+        $numRows = 5;
+        $numCols = 5;
+        $expectedPattern = [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ];
+
+        $grid = Grid::create($numRows, $numCols, $this->infinitePattern);
+        $grid->setInfinite(false);
+
+        $grid->nextGeneration();
+
+        assert($grid->toArray() === $expectedPattern, 'Expect grid to not be infinite / toroidal');
+    }
+
+    public function testNextGenerationWithInfinite(): void
+    {
+        $numRows = 5;
+        $numCols = 5;
+        $expectedPattern = [
+            [0, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 1],
+        ];
+
+        $grid = Grid::create($numRows, $numCols, $this->infinitePattern);
+        $grid->setInfinite(true);
+
+        $grid->nextGeneration();
+
+        assert($grid->toArray() === $expectedPattern, 'Expect grid to be infinite / toroidal');
     }
 
     public function testIsAliveReturnsTrue(): void

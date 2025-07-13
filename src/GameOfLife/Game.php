@@ -40,6 +40,8 @@ class Game
             $pattern[$this->config['pattern'] ?? self::DEFAULT_PATTERN]
         );
 
+        $grid->setInfinite($this->config['infinite'] ?? false);
+
         $generation = 0;
         $speed = self::MICROSECONDS_IN_MILLISECOND * ($this->config['speed'] ?? self::DEFAULT_SPEED_IN_MILLISECOND);
 
